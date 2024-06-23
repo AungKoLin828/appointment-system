@@ -1,0 +1,71 @@
+<!-- 
+    Developer : Aung Ko Lin
+    Date   : 2024-05-24
+    Purpose: BSC(IT-B6) Web Programming Final Assignment
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags, title, and CSS links -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>	Doctor-Patient	Appointment	System</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Doctor-Patient Appointment System</a>
+      </nav>
+    <div class="container" style="width: 40rem;padding:70px;">
+        <div class="card" style="width: 30rem;">
+            <div class="card-header">
+                Login
+            </div>
+            <div class="card-body">
+            <div id="loginMessage" class="text-danger mt-3"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Phone :</label> &nbsp;&nbsp;&nbsp;
+                    <input type="text" id="phoneNo" name="username"><br><br>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password"><br><br>
+                    <button class="btn btn-primary" type="submit">Login</button>
+                    <a href="./pages/register.html">New User</a>
+                </div>
+            </form>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var phoneNo = document.getElementById('phoneNo').value;
+            var password = document.getElementById('password').value;
+
+            var loginMessage = document.getElementById('loginMessage');
+
+            if(phoneNo === ''){
+                loginMessage.textContent = 'Phone Number is Empty.';
+                return;
+            }
+
+            if(password === ''){
+                loginMessage.textContent = 'Password is Empty.';
+                return;
+            }
+
+            var users = JSON.parse(localStorage.getItem('users')) || [];
+            var loggedIn = false;
+
+            users.forEach(function(user) {
+                if (user.phoneNo === phoneNo && user.password === password) {
+                    loggedIn = true;
+                    // Redirect to home page upon successful login
+                    window.location.href = './pages/home.html';
+                }
+            });
+
+            if (!loggedIn) {
+                loginMessage.textContent = 'Invalid Phone Number or password.';
+            }
+        });
+    </script>
+</body>
+</html>

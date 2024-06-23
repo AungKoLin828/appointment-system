@@ -1,0 +1,250 @@
+<!-- 
+    Developer : Aung Ko Lin
+    Date   : 2024-05-24
+    Purpose: BSC(IT-B6) Web Programming Final Assignment
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags, title, and CSS links -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>	Doctor-Patient	Appointment	System</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Doctor-Patient Appointment System</a>
+        &nbsp; &nbsp; &nbsp; &nbsp;
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item active">
+                <a class="nav-link" href="/pages/appointment.html">Do Appointment<span class="sr-only"></span></a>
+                </li>
+              <li class="nav-item active">
+                <a class="nav-link" href="/pages/appointment_lists.html">Appointment List<span class="sr-only"></span></a>
+              </li>
+              <li class="nav-item active">
+                <a class="nav-link" href="/pages/user_lists.html">User List<span class="sr-only"></span></a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/index.html">Log Out</a>
+              </li>
+            </ul>
+          </div>
+    </nav>
+    <div class="container" style="width: 60%; padding:70px;">
+        <div class="card" style="width: 50rem;">  
+            <div class="card-header">
+                All User Lists
+            </div>
+            <div class="card-body" style="padding:0px;">
+                <table class="table table-success table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone No</th>
+                            <th>Date Of Birth</th>
+                            <th>Address</th>
+                            <th>Role</th>
+                            <th>Specialty</th>
+                            <th style="width: 20%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserForm">
+                        <div id="error-message" class="text-danger mt-3"></div>
+                        <div class="mb-3">
+                            <label for="editName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="editName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPhoneNo" class="form-label">Phone No</label>
+                            <input type="text" class="form-control" id="editPhoneNo" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="editPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editConPassword" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="editConPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDob" class="form-label">Date Of Birth</label>
+                            <input type="date" class="form-control" id="editDob" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editAddress" class="form-label">Address</label>
+                            <textarea class="form-control" id="editAddress" rows="4" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editRole" class="form-label">Patient/Doctor</label>
+                            <select class="form-select" id="editRole" required>
+                                <option value="doctor">Doctor</option>
+                                <option value="patient">Patient</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="editSpecialtyGroup" style="display: none;">
+                            <label for="editSpecialty" class="form-label">Specialty</label>
+                            <select class="form-select" id="editSpecialty">
+                                <option value="Neurology Specialist">Neurology Specialist</option>
+                                <option value="Eye Specialist">Eye Specialist</option>
+                                <option value="Heart Specialist">Heart Specialist</option>
+                                <option value="Osteoporosis Specialist">Osteoporosis Specialist</option>
+                                <option value="ENT Specialist">ENT Specialist</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEditedUser()">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+            displayUsers();
+        });
+
+        function displayUsers() {
+
+            var users = JSON.parse(localStorage.getItem('users')) || [];
+            var userTableBody = document.getElementById('userTableBody');
+            userTableBody.innerHTML = '';
+
+            users.forEach(function(user,index) {
+                var row = `<tr>
+                    <td>${user.name}</td>
+                    <td>${user.phoneNo}</td>
+                    <td>${user.dob}</td>
+                    <td>${user.address}</td>
+                    <td>${user.role}</td>
+                    <td>${user.specialty ? user.specialty : ''}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onClick="editUser(${index})">Edit</button>
+                        <button class="btn btn-sm btn-danger" onClick="deleteUser(${index})">Delete</button>
+                    </td>
+                </tr>`;
+                userTableBody.innerHTML += row;
+            });
+        }
+
+        function editUser(index) {
+            var users = JSON.parse(localStorage.getItem('users')) || [];
+            var user = users[index];
+
+            // Populate edit modal with user data
+            document.getElementById('editName').value = user.name;
+            document.getElementById('editPhoneNo').value = user.phoneNo;
+            document.getElementById('editPassword').value = user.password;
+            document.getElementById('editConPassword').value = user.password;
+            document.getElementById('editDob').value = user.dob;
+            document.getElementById('editAddress').value = user.address;
+            document.getElementById('editRole').value = user.role;
+
+            if (user.role === 'doctor') {
+                document.getElementById('editSpecialtyGroup').style.display = 'block';
+                document.getElementById('editSpecialty').value = user.specialty ? user.specialty : '';
+            } else {
+                document.getElementById('editSpecialtyGroup').style.display = 'none';
+            }
+
+            // Show edit modal
+            var editUserModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+            editUserModal.show();
+
+            // Save edited user function
+            window.saveEditedUser = function() {
+
+                var confirmPassword = document.getElementById('editConPassword').value;
+                var editPass = document.getElementById('editPassword').value
+                var errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = ''; // Clear error message
+
+                if(document.getElementById('editName').value ===''){
+                    errorMessage.textContent = 'Name is empty.';
+                    return;
+                }
+
+                if(document.getElementById('editPhoneNo').value ===''){
+                    errorMessage.textContent = 'Phone Number is empty.';
+                    return;
+                }
+
+                if(document.getElementById('editDob').value ===''){
+                    errorMessage.textContent = 'Date Of Birth is empty.';
+                    return;
+                }
+
+                if(document.getElementById('editPassword').value ==='' || document.getElementById('editConPassword').value ===''){
+                    errorMessage.textContent = 'Passwords or Confirm Password is empty.';
+                    return;
+                }
+                if (editPass.length < 8) {
+                    errorMessage.textContent = 'Password must be at least 8 characters long.';
+                    return;
+                }
+
+                if (document.getElementById('editPassword').value !== document.getElementById('editConPassword').value) {
+                    errorMessage.textContent = 'Passwords and Confirm Password do not match.';
+                    return;
+                }
+
+                if(document.getElementById('editAddress').value ===''){
+                    errorMessage.textContent = 'Address is empty.';
+                    return;
+                }
+
+                var editedUser = {
+                    name: document.getElementById('editName').value,
+                    phoneNo: document.getElementById('editPhoneNo').value,
+                    password: document.getElementById('editPassword').value,
+                    dob: document.getElementById('editDob').value,
+                    address: document.getElementById('editAddress').value,
+                    role: document.getElementById('editRole').value,
+                    specialty: document.getElementById('editSpecialty').value || null
+                };
+                users[index] = editedUser;
+                localStorage.setItem('users', JSON.stringify(users));
+                displayUsers(); // Re-display the updated user list
+                editUserModal.hide(); // Hide the modal after saving changes
+            };
+        }
+
+        function deleteUser(index) {
+            var users = JSON.parse(localStorage.getItem('users')) || [];
+            users.splice(index, 1); // Remove the user at the specified index
+            localStorage.setItem('users', JSON.stringify(users)); // Update localStorage
+            displayUsers(); // Re-display the updated user list
+        }
+            
+        document.getElementById('editRole').addEventListener('change', function() {
+            var specialtyGroup = document.getElementById('editSpecialtyGroup');
+            if (this.value === 'doctor') {
+                specialtyGroup.style.display = 'block';
+            } else {
+                specialtyGroup.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

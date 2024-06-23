@@ -1,0 +1,219 @@
+<!-- 
+    Developer : Aung Ko Lin
+    Date   : 2024-05-25
+    Purpose: BSC(IT-B6) Web Programming Final Assignment
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags, title, and CSS links -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Doctor-Patient Appointment System</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Doctor-Patient Appointment System</a>
+        &nbsp; &nbsp; &nbsp; &nbsp;
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item active">
+                <a class="nav-link" href="/pages/appointment.html">Do Appointment<span class="sr-only"></span></a>
+                </li>
+              <li class="nav-item active">
+                <a class="nav-link" href="/pages/appointment_lists.html">Appointment List<span class="sr-only"></span></a>
+              </li>
+              <li class="nav-item active">
+                <a class="nav-link" href="/pages/user_lists.html">User List<span class="sr-only"></span></a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/index.html">Log Out</a>
+              </li>
+            </ul>
+          </div>
+    </nav>
+    <div class="container" style="width: 60%; padding: 70px;">
+        <div class="card" style="width: 50rem;">  
+            <div class="card-header">
+                Appointment Lists
+            </div>
+            
+            <div class="mb-3" style="padding-top: 0.5rem; padding-left: 2rem;">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search appointments..." style="width: 25rem;">
+            </div>
+            <div class="card-body" style="padding: 0px;">
+                <table class="table table-success table-striped">
+                    <thead>
+                        <tr>
+                            <th>Patient </th>
+                            <th>Doctor</th>
+                            <th>Appointment Date</th>
+                            <th>Appointment Time</th>
+                            <th>Symptoms</th>
+                            <th style="width: 20%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appointmentsTable">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Appointment Modal -->
+    <div class="modal fade" id="editAppointmentModal" tabindex="-1" aria-labelledby="editAppointmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editAppointmentModalLabel">Edit Appointment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editAppointmentForm">
+                        <div class="mb-3">
+                            <label for="editPatientName" class="form-label">Patient Name</label>
+                            <input type="text" class="form-control" id="editPatientName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDoctor" class="form-label">Doctor</label>
+                            <input type="text" class="form-control" id="editDoctor" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editAppointmentDate" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="editAppointmentDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editAppointmentTime" class="form-label">Time</label>
+                            <input type="time" class="form-control" id="editAppointmentTime" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editSymptoms" class="form-label">Symptoms</label>
+                            <textarea class="form-control" id="editSymptoms" rows="3" required></textarea>
+                        </div>
+                        <input type="hidden" id="editAppointmentIndex">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+            displayAppointments();
+
+            var searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', function() {
+                // Handle input change here
+                displayAppointments(this.value.trim().toLowerCase());
+            });
+        });
+
+        function displayAppointments(searchQuery = '') {
+
+            var appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+
+            var appointmentsTable = document.getElementById('appointmentsTable');
+            appointmentsTable.innerHTML = ''; // Clear previous content
+
+            if (appointments.length === 0) {
+                appointmentsTable.innerHTML = '<tr><td colspan="6">No appointments found.</td></tr>';
+                return;
+            }
+
+            appointments.forEach(function(appointment, index) {
+                // Check if appointment matches search query
+                if (matchesSearchQuery(appointment, searchQuery)) {
+                    var row = `
+                        <tr>
+                            <td>${appointment.patientName}</td>
+                            <td>${appointment.doctor}</td>
+                            <td>${appointment.appointmentDate}</td>
+                            <td>${appointment.appointmentTime}</td>
+                            <td>${appointment.symptoms}</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm me-2" onclick="editAppointmentModal(${index})">Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="cancelAppointment(${index})">Cancel</button>
+                            </td>
+                        </tr>`;
+                    appointmentsTable.innerHTML += row;
+                }
+            });
+            
+        }
+
+        function matchesSearchQuery(appointment, searchQuery) {
+            if (!searchQuery) return true;
+
+            return (
+                appointment.patientName.toLowerCase().includes(searchQuery) ||
+                appointment.doctor.toLowerCase().includes(searchQuery) ||
+                appointment.appointmentDate.includes(searchQuery) ||
+                appointment.symptoms.toLowerCase().includes(searchQuery)
+            );
+        }
+
+        function editAppointmentModal(index) {
+            var appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+            var appointment = appointments[index];
+
+            // Fill modal fields with current appointment data
+            document.getElementById('editPatientName').value = appointment.patientName;
+            document.getElementById('editDoctor').value = appointment.doctor;
+            document.getElementById('editAppointmentDate').value = appointment.appointmentDate;
+            document.getElementById('editAppointmentTime').value = appointment.appointmentTime;
+            document.getElementById('editSymptoms').value = appointment.symptoms;
+            document.getElementById('editAppointmentIndex').value = index;
+
+            // Show the modal
+            var editAppointmentModal = new bootstrap.Modal(document.getElementById('editAppointmentModal'));
+            editAppointmentModal.show();
+        }
+
+        document.getElementById('editAppointmentForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var index = document.getElementById('editAppointmentIndex').value;
+            var appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+            var editedAppointment = {
+                patientName: document.getElementById('editPatientName').value,
+                doctor: document.getElementById('editDoctor').value,
+                appointmentDate: document.getElementById('editAppointmentDate').value,
+                appointmentTime: document.getElementById('editAppointmentTime').value,
+                symptoms: document.getElementById('editSymptoms').value
+            };
+
+            appointments[index] = editedAppointment;
+
+            localStorage.setItem('appointments', JSON.stringify(appointments));
+
+            // Close the modal
+            var editAppointmentModal = bootstrap.Modal.getInstance(document.getElementById('editAppointmentModal'));
+            editAppointmentModal.hide();
+
+            displayAppointments();
+
+            alert('Appointment updated successfully.');
+        });
+
+        function cancelAppointment(index) {
+            // Fetch appointments from localStorage
+            var appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+
+            appointments.splice(index, 1);
+
+            // Save updated appointments back to localStorage
+            localStorage.setItem('appointments', JSON.stringify(appointments));
+
+            // Re-display the updated list of appointments
+            displayAppointments();
+
+            alert('Appointment cancelled successfully.');
+        }
+
+    </script>
+</body>
+</html>
